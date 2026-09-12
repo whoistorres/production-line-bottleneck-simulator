@@ -28,7 +28,7 @@ The four headline figures above are real. The per-station cycle times, the 6 int
 ## Features
 
 - **Interactive scenario selector** — cross-highlights the throughput chart, the results table, and a dynamic summary line together
-- **6 chart panels** — baseline station cycle times, the bottleneck's improvement path across scenarios, per-scenario throughput, and a before/after annual output comparison
+- **4 chart panels** — baseline station cycle times, the bottleneck's improvement path across scenarios, per-scenario throughput, and a before/after annual output comparison
 - **Fully responsive** — reflows cleanly from a 6" phone screen up to a wide monitor, tested at multiple breakpoints
 - **Zero dependencies at runtime** — Chart.js is embedded directly in the HTML file, so the page loads and renders completely offline, with no CDN or network call required
 
