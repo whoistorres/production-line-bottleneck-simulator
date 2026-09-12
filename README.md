@@ -2,7 +2,7 @@
 
 **[Live Demo →](https://whoistorres.github.io/production-line-bottleneck-simulator/)**
 
-An interactive dashboard that visualizes a sensitivity analysis across 7 bottleneck-reduction scenarios for a 6-station production line built as a portfolio visualization layer on top of a real independent Industrial Engineering project.
+An interactive dashboard, built as a portfolio visualization layer on top of a real independent Industrial Engineering project, that visualizes a sensitivity analysis across 7 bottleneck-reduction scenarios for a 6-station production line.
 
 ![Dashboard preview](assets/dashboard-preview.png)
 
@@ -23,7 +23,7 @@ These four figures are the actual reported results from the original Excel-based
 
 ## A note on the data
 
-The four headline figures above are real. The per-station cycle times, the 6 intermediate scenarios, and the annual-operating-hours figure used to project yearly output are a **reconstructed, illustrative model** built to be internally consistent with those results, not a re-export of the original spreadsheet's raw data. The dashboard's own disclosure banner states this explicitly, and it's called out here for the same reason, with the goal of this project is to demonstrate analysis and communication, not to pass off illustrative numbers as raw source data.
+The four headline figures above are real. The per-station cycle times, the 6 intermediate scenarios, and the annual-operating-hours figure used to project yearly output are a **reconstructed, illustrative model** built to be internally consistent with those results, not a re-export of the original spreadsheet's raw data. The dashboard's own disclosure banner states this explicitly, and it's called out here for the same reason: the goal of this project is to demonstrate analysis and communication, not to pass off illustrative numbers as raw source data.
 
 ## Features
 
