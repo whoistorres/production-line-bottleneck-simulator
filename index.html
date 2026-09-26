@@ -196,7 +196,7 @@
 </header>
 
 <div class="disclosure">
-  <strong>⚠ Illustrative dashboard.</strong> The four headline figures (Station 3 bottleneck at 88 sec/unit, 22% cycle-time reduction, 28.2% throughput increase, +39,860 units/yr) are the actual reported results from the original Excel model. The per-station cycle times and the 7-scenario progression shown below were reconstructed to be internally consistent with those results for visualization purposes — they are not a re-export of the original spreadsheet's raw data.
+  <strong>⚠ Illustrative dashboard.</strong> The four headline figures (Station 3 bottleneck at 88 sec/unit, 22% cycle-time reduction, 28.2% throughput increase, +39,860 units/yr) are the actual reported results from the original Excel model. The per-station cycle times and the 7-scenario progression shown below (including the intervention descriptions) were reconstructed to be internally consistent with those results for visualization purposes — they are not a re-export of the original spreadsheet's raw data.
 </div>
 
 <div class="wrap">
@@ -248,7 +248,7 @@
       <div class="table-wrap">
         <table id="scenarioTable">
           <thead>
-            <tr><th>#</th><th>Intervention</th><th>St.3 (sec/unit)</th><th>Units/hr</th><th>Units/yr</th></tr>
+            <tr><th>#</th><th>Intervention</th><th>St.3 (sec/unit)</th><th>Line constraint</th><th>Units/hr</th><th>Units/yr</th></tr>
           </thead>
           <tbody></tbody>
         </table>
@@ -265,7 +265,9 @@
 </div>
 
 <footer>
-  Model basis: 6-station line, bottleneck-limited throughput (units/hr = 3600 ÷ constraining station's cycle time in sec/unit).
+  Model basis: 6-station line, bottleneck-limited throughput (units/hr = 3600 ÷ the slowest station's cycle time in sec/unit, recomputed for every scenario).
+  Buffers and parallel cells are deliberately not modeled as Station 3 speedups: a buffer protects the bottleneck from starving or blocking but leaves its cycle time unchanged, and a duplicated cell would halve Station 3's effective time and move the constraint to Station 6.
+  Next constraint: St 6 (67 sec/unit) — pushing Station 3 below that adds no throughput unless St 6 improves too.
   Annual operating hours (≈3,455) is a modeling parameter chosen so baseline-to-optimized annual output lines up with the reported +39,860 units/yr figure — it wasn't a stated assumption in the original project.
   Built as a portfolio visualization layer on top of a real independent IE project — see disclosure above.
 </footer>
@@ -280,20 +282,26 @@ const stations = [
   {name:"St 6 — Final Functional QC", time:67},
 ];
 
+// time = Station 3 cycle time (S7 = 88 × 0.78, the reported 22% cut); shift = work moved onto other stations (index -> sec/unit added)
 const scenarios = [
   {n:1, label:"Baseline — current process, no changes", time:88.0, selected:false},
-  {n:2, label:"Added buffer stock before/after Torque & Inspection", time:85.0, selected:false},
+  {n:2, label:"Standardized work at Station 3 (fixed torque sequence, pre-staged fasteners)", time:85.0, selected:false},
   {n:3, label:"Cross-trained 2 line operators to float into Station 3 during peak runs", time:82.0, selected:false},
   {n:4, label:"Redesigned torque fixture to cut per-unit dwell time", time:78.0, selected:false},
-  {n:5, label:"Split Torque & Inspection into two parallel cells", time:74.0, selected:false},
-  {n:6, label:"Torque fixture redesign + parallel cell split", time:71.0, selected:false},
-  {n:7, label:"Full redesign: fixture + parallel cells + buffer stock — selected", time:68.6, selected:true},
+  {n:5, label:"Torque fixture redesign + standardized work", time:75.0, selected:false},
+  {n:6, label:"Torque fixture redesign + moved final visual check to Station 4 (line rebalance)", time:74.0, shift:{3:4}, selected:false},
+  {n:7, label:"Full redesign: fixture + visual-check rebalance + peak-run floaters — selected", time:68.64, shift:{3:4}, selected:true},
 ];
 
-const OPERATING_HOURS = 3455; // synthetic, back-solved — see footer disclosure
+const OPERATING_HOURS = 3454.5; // synthetic, back-solved to reproduce +39,860 units/yr — see footer disclosure
 
+// Line throughput is set by the slowest station, so check every station in each
+// scenario rather than assuming Station 3 stays the constraint.
 scenarios.forEach(s=>{
-  s.unitsPerHr = 3600 / s.time;
+  const times = stations.map((st,i)=> i===2 ? s.time : st.time + ((s.shift && s.shift[i]) || 0));
+  s.lineTime = Math.max(...times);
+  s.constraint = stations[times.indexOf(s.lineTime)].name.split(' — ')[0];
+  s.unitsPerHr = 3600 / s.lineTime;
   s.unitsPerYr = Math.round(s.unitsPerHr * OPERATING_HOURS);
 });
 
@@ -393,7 +401,7 @@ const tbody = document.querySelector('#scenarioTable tbody');
 scenarios.forEach(s=>{
   const tr = document.createElement('tr');
   if(s.selected) tr.className='selected';
-  tr.innerHTML = `<td>${s.n}</td><td>${s.label}</td><td>${s.time.toFixed(1)}</td><td>${s.unitsPerHr.toFixed(1)}</td><td>${s.unitsPerYr.toLocaleString()}</td>`;
+  tr.innerHTML = `<td>${s.n}</td><td>${s.label}</td><td>${s.time.toFixed(1)}</td><td>${s.constraint}</td><td>${s.unitsPerHr.toFixed(1)}</td><td>${s.unitsPerYr.toLocaleString()}</td>`;
   tbody.appendChild(tr);
 });
 
@@ -417,7 +425,8 @@ function renderSummary(idx){
   const throughputPct = ((s.unitsPerHr - baseline.unitsPerHr) / baseline.unitsPerHr) * 100;
   const yrDelta = s.unitsPerYr - baseline.unitsPerYr;
   summaryEl.innerHTML = `<strong>Scenario ${s.n}</strong> cuts Station 3 to <strong>${s.time.toFixed(1)} sec/unit</strong> — `
-    + `+${throughputPct.toFixed(1)}% throughput and +${yrDelta.toLocaleString()} units/yr vs. baseline.`;
+    + `+${throughputPct.toFixed(1)}% throughput and +${yrDelta.toLocaleString()} units/yr vs. baseline `
+    + `(line constraint: ${s.constraint}, ${s.lineTime.toFixed(1)} sec/unit).`;
 }
 
 select.addEventListener('change', ()=>{
